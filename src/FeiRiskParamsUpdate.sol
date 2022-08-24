@@ -27,6 +27,11 @@ interface ILendingPoolConfigurator {
     function freezeReserve(
         address asset
     ) external;
+
+    function setReserveFactor(
+        address asset,
+        uint256 reserveFactor
+    ) external;
 }
 
 contract FeiRiskParamsUpdate is IProposalGenericExecutor {
@@ -35,5 +40,6 @@ contract FeiRiskParamsUpdate is IProposalGenericExecutor {
 
     function execute() external override {
         ILendingPoolConfigurator(LENDING_POOL_CONFIGURATOR).freezeReserve(FEI);
+        ILendingPoolConfigurator(LENDING_POOL_CONFIGURATOR).setReserveFactor(FEI, 10_000);
     }
 }

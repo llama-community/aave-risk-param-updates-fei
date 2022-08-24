@@ -66,6 +66,6 @@ contract ValidationFeiRiskParamUpdate is Test {
 
         require(!feiConfigBefore.isFrozen);
         require(feiConfigAfter.isFrozen);
-
+        require(feiConfigAfter.reserveFactor == 10_000);
     }
 }
