@@ -39,6 +39,7 @@ interface IFixedPricePSM {
 
 interface IERC20 {
     function balanceOf(address account) external view returns (uint256);
+    function approve(address spender, uint256 amount) external returns (bool);
 }
 
 interface ILendingPool {
@@ -109,6 +110,7 @@ interface IEcosystemReserveController {
 }
 
 contract RedeemFei is IProposalGenericExecutor {
+
     address public constant FEI = 0x956F47F50A910163D8BF957Cf5846D573E7f87CA;
 
     address public constant A_FEI = 0x683923dB55Fead99A79Fa01A27EeC3cB19679cC3;
@@ -119,11 +121,11 @@ contract RedeemFei is IProposalGenericExecutor {
 
     IEcosystemReserveController public constant AAVE_ECOSYSTEM_RESERVE_CONTROLLER =
         IEcosystemReserveController(0x3d569673dAa0575c936c7c67c4E6AedA69CC630C);
-        
+
     ILendingPool public constant AAVE_LENDING_POOL = ILendingPool(0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9);
 
     function execute() external override {
-        uint256 aFeiBalance = IERC20(A_FEI).balanceOf(address(this));
+        uint256 aFeiBalance = IERC20(A_FEI).balanceOf(AAVE_MAINNET_RESERVE_FACTOR);
 
         AAVE_ECOSYSTEM_RESERVE_CONTROLLER.transfer(
             AAVE_MAINNET_RESERVE_FACTOR,
@@ -137,7 +139,9 @@ contract RedeemFei is IProposalGenericExecutor {
         uint256 feiBalance = IERC20(FEI).balanceOf(address(this));
 
         // PSM takes a 10 bps redeem fee
-        uint256 minBalance = feibalance - (feiBalance / 100);
+        uint256 minBalance = feiBalance - (feiBalance / 100);
+
+        IERC20(FEI).approve(address(DAI_FIXED_PRICE_PSM), feiBalance);
 
         DAI_FIXED_PRICE_PSM.redeem(AAVE_MAINNET_RESERVE_FACTOR, feiBalance, minBalance);
     }
