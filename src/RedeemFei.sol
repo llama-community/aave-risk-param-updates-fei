@@ -35,11 +35,16 @@ interface IFixedPricePSM {
         uint256 amountFeiIn,
         uint256 minAmountOut
     ) external returns (uint256 amountOut);
+
+    function getRedeemAmountOut(
+        uint256 amountFeiIn
+    ) external view returns (uint256 amountTokenOut);
 }
 
 interface IERC20 {
     function balanceOf(address account) external view returns (uint256);
     function approve(address spender, uint256 amount) external returns (bool);
+    function transfer(address to, uint256 amount) external;
 }
 
 interface ILendingPool {
@@ -138,11 +143,21 @@ contract RedeemFei is IProposalGenericExecutor {
         
         uint256 feiBalance = IERC20(FEI).balanceOf(address(this));
 
-        // PSM takes a 10 bps redeem fee
-        uint256 minBalance = feiBalance - (feiBalance / 100);
+        // The minimum amount of DAI we are willing to receive after redeeming all our FEI.
+        // PSM hardcodes 1 DAI = 1 FEI & takes a 3 bps redeem fee
+        // so we subtract a 3bps fee from our FEI balance
+        // https://etherscan.io/address/0x2A188F9EB761F70ECEa083bA6c2A40145078dfc2#readContract function 31. redeemFeeBasisPoints 
+        uint256 minBalance = feiBalance - (feiBalance / 1000 * 3);
 
-        IERC20(FEI).approve(address(DAI_FIXED_PRICE_PSM), feiBalance);
+        if (DAI_FIXED_PRICE_PSM.getRedeemAmountOut(feiBalance) < minBalance) {
+            // TODO figure out what to do with FEI if we cant redeem it
+            IERC20(FEI).transfer(AAVE_MAINNET_RESERVE_FACTOR, feiBalance);
+        } else {
+            // we can redeem directly from PSM
+            IERC20(FEI).approve(address(DAI_FIXED_PRICE_PSM), feiBalance);
 
-        DAI_FIXED_PRICE_PSM.redeem(AAVE_MAINNET_RESERVE_FACTOR, feiBalance, minBalance);
+            // https://docs.tribedao.xyz/docs/protocol/Mechanism/PegStabilityModule
+            DAI_FIXED_PRICE_PSM.redeem(AAVE_MAINNET_RESERVE_FACTOR, feiBalance, minBalance);
+        }
     }
 }

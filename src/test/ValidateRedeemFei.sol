@@ -23,8 +23,7 @@ contract ValidationRedeemFei is Test {
     function testProposalPostPayload() public {
         /// deploy payload
         RedeemFei fei = new RedeemFei();
-        address payload = address(fei);
-        _testProposal(payload);
+        _testProposal(address(fei));
     }
 
     function _testProposal(address payload) internal {
