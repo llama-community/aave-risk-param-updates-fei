@@ -59,6 +59,8 @@ contract ValidationFeiRiskParamUpdate is Test {
 
     address public constant A_FEI = 0x683923dB55Fead99A79Fa01A27EeC3cB19679cC3;
 
+    address public constant A_FEI_WHALE = 0x4fb2e1E718EC713aa7346687FCE8e4411b7F423e;
+
     ILendingPool public constant AAVE_LENDING_POOL = ILendingPool(0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9);
 
     // can't be constant for some reason
@@ -113,10 +115,14 @@ contract ValidationFeiRiskParamUpdate is Test {
         assertEq(feiConfigBefore.isFrozen, false);
         assertEq(feiConfigAfter.isFrozen, true);
         assertEq(feiConfigAfter.reserveFactor, 10_000);
-        vm.startPrank(0x4fb2e1E718EC713aa7346687FCE8e4411b7F423e);
-        uint256 balanceBefore = IERC20(FEI).balanceOf(0x4fb2e1E718EC713aa7346687FCE8e4411b7F423e);
-        AAVE_LENDING_POOL.withdraw(FEI, IERC20(A_FEI).balanceOf(0x4fb2e1E718EC713aa7346687FCE8e4411b7F423e), 0x4fb2e1E718EC713aa7346687FCE8e4411b7F423e);
-        uint256 balanceAfter = IERC20(FEI).balanceOf(0x4fb2e1E718EC713aa7346687FCE8e4411b7F423e);
-        assertEq(balanceAfter > balanceBefore, true);
+
+        // checking if it's still possible to withdrwaw from the market
+        vm.startPrank(A_FEI_WHALE);
+        uint256 aFeiBalance = IERC20(A_FEI).balanceOf(A_FEI_WHALE);
+        uint256 balanceBefore = IERC20(FEI).balanceOf(A_FEI_WHALE);
+        AAVE_LENDING_POOL.withdraw(FEI, aFeiBalance , A_FEI_WHALE);
+        uint256 balanceAfter = IERC20(FEI).balanceOf(A_FEI_WHALE);
+        vm.stopPrank();
+        assertEq(balanceAfter == balanceBefore + aFeiBalance , true);
     }
 }
