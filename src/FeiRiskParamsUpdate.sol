@@ -34,6 +34,10 @@ interface ILendingPoolConfigurator {
     ) external;
 }
 
+// This payload freezes the FEI aave v2 market and sets the reserve factor to 100%
+// in preparation for Tribe DAO wind down.
+// https://governance.aave.com/t/arc-risk-parameter-updates-for-ethereum-aave-v2-market/9393
+// https://snapshot.org/#/aave.eth/proposal/0x19df23070be999efbb7caf6cd35c320eb74dd119bcb15d003dc2e82c2bbd0d94
 contract FeiRiskParamsUpdate is IProposalGenericExecutor {
     address public constant FEI = 0x956F47F50A910163D8BF957Cf5846D573E7f87CA;
     address public constant LENDING_POOL_CONFIGURATOR = 0x311Bb771e4F8952E6Da169b425E7e92d6Ac45756;
